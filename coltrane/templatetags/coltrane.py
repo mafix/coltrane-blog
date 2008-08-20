@@ -1,17 +1,11 @@
-from django.db.models import get_model
 from django import template
-from django.contrib.comments.models import Comment, FreeComment
 from template_utils.templatetags.generic_content import GenericContentNode
-
-from coltrane.models import Entry, Link
-
 
 register = template.Library()
 
-
 class LatestFeaturedNode(GenericContentNode):
     def _get_query_set(self):
-        return self.queryset.filter(featured__exact=True)
+        return self.query_set.filter(featured__exact=True)
 
 
 def do_featured_entries(parser, token):
