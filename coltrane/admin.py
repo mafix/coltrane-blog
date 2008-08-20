@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.translation import ugettext_lazy as _
 from coltrane.models import Category, Entry, Link
 
 class CategoryOptions(admin.ModelAdmin):
@@ -9,11 +10,11 @@ class CategoryOptions(admin.ModelAdmin):
 class EntryOptions(admin.ModelAdmin):
     date_hierarchy = 'pub_date'
     fieldsets = (
-        ('Metadata', { 'fields':
+        (_('metadata'), { 'fields':
                        ('title', 'slug', 'pub_date', 'author', 'status', 'featured', 'enable_comments') }),
-        ('Entry', { 'fields':
+        (_('entry'), { 'fields':
                     ('excerpt', 'body') }),
-        ('Categorization', { 'fields':
+        (_('categorization'), { 'fields':
                              ('tags', 'categories') }),
         )
     filter_horizontal = ('categories',)
@@ -27,9 +28,9 @@ class EntryOptions(admin.ModelAdmin):
 class LinkOptions(admin.ModelAdmin):
     date_hierarchy = 'pub_date'
     fieldsets = (
-        ('Metadata', { 'fields':
+        (_('metadata'), { 'fields':
                        ('title', 'slug', 'pub_date', 'posted_by', 'enable_comments', 'post_elsewhere') }),
-        ('Link', { 'fields':
+        (_('link'), { 'fields':
                   ('url', 'description', 'tags', 'via_name', 'via_url') }),
         )
     list_display = ('title', 'enable_comments')

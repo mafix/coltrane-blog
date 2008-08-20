@@ -11,6 +11,7 @@ from comment_utils.moderation import CommentModerator, moderator
 from django.conf import settings
 from django.db import models
 from django.utils.encoding import smart_str
+from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ImproperlyConfigured
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
@@ -50,13 +51,14 @@ class Category(models.Model):
     A category that an Entry can belong to.
     
     """
-    title = models.CharField(max_length=250)
-    slug = models.SlugField(unique=True, help_text=u'Used in the URL for the category. Must be unique.')
-    description = models.TextField(help_text=u'A short description of the category, to be used in list pages.')
-    description_html = models.TextField(editable=False, blank=True)
+    title = models.CharField(_('title'), max_length=250)
+    slug = models.SlugField(_('slug'), unique=True, help_text=_('Used in the URL for the category. Must be unique.'))
+    description = models.TextField(_('description'), help_text=_('A short description of the category, to be used in list pages.'))
+    description_html = models.TextField(_('description HTML'), editable=False, blank=True)
     
     class Meta:
-        verbose_name_plural = 'Categories'
+        verbose_name = _('category')
+        verbose_name_plural = _('categories')
         ordering = ['title']
     
     def __unicode__(self):
@@ -108,24 +110,24 @@ class Entry(models.Model):
         )
     
     # Metadata.
-    author = models.ForeignKey(User)
-    enable_comments = models.BooleanField(default=True)
-    featured = models.BooleanField(default=False)
-    pub_date = models.DateTimeField(u'Date posted', default=datetime.datetime.today)
-    slug = models.SlugField(unique_for_date='pub_date', max_length=100,
-                            help_text=u'Used in the URL of the entry. Must be unique for the publication date of the entry.')
-    status = models.IntegerField(choices=STATUS_CHOICES, default=LIVE_STATUS,
-                                 help_text=u'Only entries with "live" status will be displayed publicly.')
-    title = models.CharField(max_length=250)
+    author = models.ForeignKey(User, verbose_name=_('author'))
+    enable_comments = models.BooleanField(_('enable comments'), default=True)
+    featured = models.BooleanField(_('featured'), default=False)
+    pub_date = models.DateTimeField(_('date posted'), default=datetime.datetime.today)
+    slug = models.SlugField(_('slug'), unique_for_date='pub_date', max_length=100,
+                            help_text=_('Used in the URL of the entry. Must be unique for the publication date of the entry.'))
+    status = models.IntegerField(_('status'), choices=STATUS_CHOICES, default=LIVE_STATUS,
+                                 help_text=_('Only entries with "live" status will be displayed publicly.'))
+    title = models.CharField(_('title'), max_length=250)
     
     # The actual entry bits.
-    body = models.TextField()
-    body_html = models.TextField(editable=False, blank=True)
-    excerpt = models.TextField(blank=True, null=True)
-    excerpt_html = models.TextField(blank=True, null=True, editable=False)
+    body = models.TextField(_('body'))
+    body_html = models.TextField(_('body HTML'), editable=False, blank=True)
+    excerpt = models.TextField(_('excerpt'), blank=True, null=True)
+    excerpt_html = models.TextField(_('excerpt HTML'), blank=True, null=True, editable=False)
     
     # Categorization.
-    categories = models.ManyToManyField(Category, blank=True)
+    categories = models.ManyToManyField(Category, blank=True, verbose_name=_('categories'))
     tags = TagField()
     
     # Managers.
@@ -135,7 +137,8 @@ class Entry(models.Model):
     class Meta:
         get_latest_by = 'pub_date'
         ordering = ['-pub_date']
-        verbose_name_plural = 'Entries'
+        verbose_name = _('entry')
+        verbose_name_plural = _('entries')
     
     def __unicode__(self):
         return self.title
@@ -185,11 +188,11 @@ class Entry(models.Model):
         model = comment_model
         ctype = ContentType.objects.get_for_model(self)
         return model.objects.filter(content_type__pk=ctype.id, object_id__exact=self.id).count()
-    _get_comment_count.short_description = 'Number of comments'
+    _get_comment_count.short_description = _('number of comments')
 
     def _get_category_count(self):
         return self.categories.count()
-    _get_category_count.short_description = 'Number of categories'
+    _get_category_count.short_description = _('number of categories')
 
 
 class Link(models.Model):
@@ -202,31 +205,33 @@ class Link(models.Model):
     
     """
     # Metadata.
-    enable_comments = models.BooleanField(default=True)
-    post_elsewhere = models.BooleanField(u'Post to del.icio.us',
+    enable_comments = models.BooleanField(_('enable comments'), default=True)
+    post_elsewhere = models.BooleanField(_('post to del.icio.us'),
                                          default=settings.DEFAULT_EXTERNAL_LINK_POST,
-                                         help_text=u'If checked, this link will be posted both to your weblog and to your del.icio.us account.')
-    posted_by = models.ForeignKey(User)
-    pub_date = models.DateTimeField(default=datetime.datetime.today)
-    slug = models.SlugField(unique_for_date='pub_date',
-                            help_text=u'Must be unique for the publication date.')
-    title = models.CharField(max_length=250)
+                                         help_text=_('If checked, this link will be posted both to your weblog and to your del.icio.us account.'))
+    posted_by = models.ForeignKey(User, verbose_name=_('posted by'))
+    pub_date = models.DateTimeField(_('date posted'), default=datetime.datetime.today)
+    slug = models.SlugField(_('slug'), unique_for_date='pub_date',
+                            help_text=_('Must be unique for the publication date.'))
+    title = models.CharField(_('title'), max_length=250)
     
     # The actual link bits.
-    description = models.TextField(blank=True, null=True)
-    description_html = models.TextField(editable=False, blank=True, null=True)
-    via_name = models.CharField(u'Via', max_length=250, blank=True, null=True,
-                                help_text=u'The name of the person whose site you spotted the link on. Optional.')
-    via_url = models.URLField('Via URL', verify_exists=False, blank=True, null=True,
-                              help_text=u'The URL of the site where you spotted the link. Optional.')
+    description = models.TextField(_('description'), blank=True, null=True)
+    description_html = models.TextField(_('description HTML'), editable=False, blank=True, null=True)
+    via_name = models.CharField(_('via'), max_length=250, blank=True, null=True,
+                                help_text=_('The name of the person whose site you spotted the link on. Optional.'))
+    via_url = models.URLField(_('via URL'), verify_exists=False, blank=True, null=True,
+                              help_text=_('The URL of the site where you spotted the link. Optional.'))
     tags = TagField()
-    url = models.URLField('URL', unique=True, verify_exists=False)
+    url = models.URLField(_('URL'), unique=True, verify_exists=False)
     
     objects = CommentedObjectManager()
     
     class Meta:
         get_latest_by = 'pub_date'
         ordering = ['-pub_date']
+        verbose_name = _('link')
+        verbose_name_plural = _('links')
     
     def __unicode__(self):
         return self.title
