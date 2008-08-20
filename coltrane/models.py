@@ -88,7 +88,7 @@ class Entry(models.Model):
     enable_comments = models.BooleanField(default=True)
     featured = models.BooleanField(default=False)
     pub_date = models.DateTimeField(u'Date posted', default=datetime.datetime.today)
-    slug = models.SlugField(unique_for_date='pub_date',
+    slug = models.SlugField(unique_for_date='pub_date', max_length=100,
                             help_text=u'Used in the URL of the entry. Must be unique for the publication date of the entry.')
     status = models.IntegerField(choices=STATUS_CHOICES, default=LIVE_STATUS,
                                  help_text=u'Only entries with "live" status will be displayed publicly.')
@@ -162,6 +162,10 @@ class Entry(models.Model):
         ctype = ContentType.objects.get_for_model(self)
         return model.objects.filter(content_type__pk=ctype.id, object_id__exact=self.id).count()
     _get_comment_count.short_description = 'Number of comments'
+
+    def _get_category_count(self):
+        return self.categories.count()
+    _get_category_count.short_description = 'Number of categories'
 
 
 class Link(models.Model):

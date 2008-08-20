@@ -17,7 +17,7 @@ class EntryOptions(admin.ModelAdmin):
                              ('tags', 'categories') }),
         )
     filter_horizontal = ('categories',)
-    list_display = ('title', 'pub_date', 'author', 'status', 'enable_comments', '_get_comment_count')
+    list_display = ('title', 'pub_date', 'author', 'status', 'enable_comments', '_get_comment_count', '_get_category_count')
     list_filter = ('status', 'categories')
     search_fields = ('excerpt', 'body', 'title')
     prepopulated_fields = {
