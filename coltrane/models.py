@@ -27,17 +27,13 @@ class Category(models.Model):
     
     """
     title = models.CharField(max_length=250)
-    slug = models.SlugField(prepopulate_from=('title',), unique=True,
-                            help_text=u'Used in the URL for the category. Must be unique.')
+    slug = models.SlugField(unique=True, help_text=u'Used in the URL for the category. Must be unique.')
     description = models.TextField(help_text=u'A short description of the category, to be used in list pages.')
     description_html = models.TextField(editable=False, blank=True)
     
     class Meta:
         verbose_name_plural = 'Categories'
         ordering = ['title']
-    
-    class Admin:
-        pass
     
     def __unicode__(self):
         return self.title
@@ -92,8 +88,7 @@ class Entry(models.Model):
     enable_comments = models.BooleanField(default=True)
     featured = models.BooleanField(default=False)
     pub_date = models.DateTimeField(u'Date posted', default=datetime.datetime.today)
-    slug = models.SlugField(prepopulate_from=('title',),
-                            unique_for_date='pub_date',
+    slug = models.SlugField(unique_for_date='pub_date',
                             help_text=u'Used in the URL of the entry. Must be unique for the publication date of the entry.')
     status = models.IntegerField(choices=STATUS_CHOICES, default=LIVE_STATUS,
                                  help_text=u'Only entries with "live" status will be displayed publicly.')
@@ -106,7 +101,7 @@ class Entry(models.Model):
     excerpt_html = models.TextField(blank=True, null=True, editable=False)
     
     # Categorization.
-    categories = models.ManyToManyField(Category, filter_interface=models.HORIZONTAL, blank=True)
+    categories = models.ManyToManyField(Category, blank=True)
     tags = TagField()
     
     # Managers.
@@ -117,20 +112,6 @@ class Entry(models.Model):
         get_latest_by = 'pub_date'
         ordering = ['-pub_date']
         verbose_name_plural = 'Entries'
-    
-    class Admin:
-        date_hierarchy = 'pub_date'
-        fields = (
-            ('Metadata', { 'fields':
-                           ('title', 'slug', 'pub_date', 'author', 'status', 'featured', 'enable_comments') }),
-            ('Entry', { 'fields':
-                        ('excerpt', 'body') }),
-            ('Categorization', { 'fields':
-                                 ('tags', 'categories') }),
-            )
-        list_display = ('title', 'pub_date', 'author', 'status', 'enable_comments', '_get_comment_count')
-        list_filter = ('status', 'categories')
-        search_fields = ('excerpt', 'body', 'title')
     
     def __unicode__(self):
         return self.title
@@ -199,8 +180,7 @@ class Link(models.Model):
                                          help_text=u'If checked, this link will be posted both to your weblog and to your del.icio.us account.')
     posted_by = models.ForeignKey(User)
     pub_date = models.DateTimeField(default=datetime.datetime.today)
-    slug = models.SlugField(prepopulate_from=('title',),
-                            unique_for_date='pub_date',
+    slug = models.SlugField(unique_for_date='pub_date',
                             help_text=u'Must be unique for the publication date.')
     title = models.CharField(max_length=250)
     
@@ -219,17 +199,6 @@ class Link(models.Model):
     class Meta:
         get_latest_by = 'pub_date'
         ordering = ['-pub_date']
-    
-    class Admin:
-        date_hierarchy = 'pub_date'
-        fields = (
-            ('Metadata', { 'fields':
-                           ('title', 'slug', 'pub_date', 'posted_by', 'enable_comments', 'post_elsewhere') }),
-            ('Link', { 'fields':
-                      ('url', 'description', 'tags', 'via_name', 'via_url') }),
-            )
-        list_display = ('title', 'enable_comments')
-        search_fields = ('title', 'description')
     
     def __unicode__(self):
         return self.title
