@@ -11,6 +11,7 @@ from comment_utils.moderation import CommentModerator, moderator
 from django.conf import settings
 from django.db import models
 from django.utils.encoding import smart_str
+from django.core.exceptions import ImproperlyConfigured
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.comments import models as comment_models
@@ -20,6 +21,29 @@ from template_utils.markup import formatter
 
 from coltrane import managers
 
+# Uses the optional COLTRANE_COMMENT_MODULE setting to load the appropriate
+# comment model, falls back to django.contrib.comments
+# Should be in the form <module>.<lowercase_modelname>
+# e.g. COLTRANE_COMMENT_MODULE = 'threadedcomments.freethreadedcomment'
+comment_module = getattr(settings, 'COLTRANE_COMMENT_MODULE', None)
+if comment_module is not None:
+    try:
+        app_label, model_name = comment_module.split('.')
+        comment_model = models.get_model(app_label, model_name)
+        use_contrib_comments = False
+    except (ImportError, ImproperlyConfigured):
+        use_contrib_comments = True
+if use_contrib_comments:
+    comment_model = settings.USE_FREE_COMMENTS and comment_models.FreeComment or comment_models.Comment
+
+# Uses the optional COLTRANE_MODERATION_MODULE setting to determine the
+# module that is used for moderation, usually inheriting from comment_utils.
+# Should be in the form <python.path.to.module>
+# e.g. COLTRANE_MODERATION_MODULE = 'threadedcomments.moderation'
+moderation_module = getattr(settings, 'COLTRANE_MODERATION_MODULE', 'comment_utils.moderation')
+mod = __import__(moderation_module, {}, {}, ['moderation'])
+moderator = getattr(mod, 'moderator')
+CommentModerator = getattr(mod, 'CommentModerator')
 
 class Category(models.Model):
     """
@@ -158,7 +182,7 @@ class Entry(models.Model):
         return self._next_previous_helper('previous')
 
     def _get_comment_count(self):
-        model = settings.USE_FREE_COMMENTS and comment_models.FreeComment or comment_models.Comment
+        model = comment_model
         ctype = ContentType.objects.get_for_model(self)
         return model.objects.filter(content_type__pk=ctype.id, object_id__exact=self.id).count()
     _get_comment_count.short_description = 'Number of comments'
