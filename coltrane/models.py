@@ -104,9 +104,9 @@ class Entry(models.Model):
     DRAFT_STATUS = 2
     HIDDEN_STATUS = 3
     STATUS_CHOICES = (
-        (LIVE_STATUS, 'Live'),
-        (DRAFT_STATUS, 'Draft'),
-        (HIDDEN_STATUS, 'Hidden'),
+        (LIVE_STATUS, _('Live')),
+        (DRAFT_STATUS, _('Draft')),
+        (HIDDEN_STATUS, _('Hidden')),
         )
     
     # Metadata.
